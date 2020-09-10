@@ -1,0 +1,52 @@
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+use ieee.numeric_std.all;
+
+entity pwm_creator is
+  Port (ADC:in std_logic_vector(7 downto 0):="00000000";
+        clock:in std_logic:='0';
+        key :in std_logic:='0';
+        pwm:out std_logic );
+end pwm_creator;
+
+architecture Behavioral of pwm_creator is
+signal on_off:std_logic:='1';
+signal adc_conv:integer;
+signal on_time,off_time:integer:=0 ;
+signal sample:std_logic:='1';
+begin
+
+
+main:process(clock)
+constant num:integer:=195;
+begin
+if rising_edge(clock) then
+if key='1' and sample='0' then
+sample<='1';
+end if;
+if sample='1' then
+adc_conv<=to_integer(unsigned(ADC));
+sample<='0';
+end if;
+
+
+if (on_time<(num*adc_conv)) and (on_off='1') then
+on_time<=on_time+1;
+pwm<='1';
+off_time<=0;
+else
+on_off<='0';
+end if;
+
+if (off_time<(50000-on_time)) and (on_off='0') then
+off_time<=off_time+1;
+pwm<='0';
+elsif (off_time=(50000-on_time)) then
+on_off<='1';
+on_time<=0;
+
+end if;
+end if;
+end process;
+
+end Behavioral;
